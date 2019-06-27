@@ -19,6 +19,7 @@ static int			split_cache_str(char **p_cache_str, char **line)
 
 	after_endline = &cache_str[i];
 	*after_endline = '\0';
+	free(*line);
 	*line = ft_strdup(*p_cache_str);
 	*p_cache_str = ft_strdup(after_endline + 1);
 	return (1);
@@ -28,7 +29,7 @@ static	int			read_fd(int fd, char **cache, char **line)
 {
 	int				ret;
 	char			*tmp_cache;
-	char			buffer[BUFF_SIZE];
+	char			buffer[BUFF_SIZE + 1];
 
 	while ((ret = read(fd, buffer, BUFF_SIZE)) > 0)
 	{
