@@ -9,31 +9,27 @@ static int			split_cache_str(char **p_cache_str, char **line)
 	i = 0;
 	cache_str = *p_cache_str;
 	while (cache_str[i] != '\n')
-    {
+	{
 		if (cache_str[i] == '\0')
-        {
-			return (0); // 0 - если кэш-строка без переносов внутри себя
-        }
-        i++;
-    }
+		{
+			return (0);
+		}
+		i++;
+	}
 
-    // в line пишет все символы до \n
-    // в p_cache_str остальное
-
-    after_endline = &cache_str[i];
+	after_endline = &cache_str[i];
 	*after_endline = '\0';
 	*line = ft_strdup(*p_cache_str);
 	*p_cache_str = ft_strdup(after_endline + 1);
-	return (1); // 1 - если кэш-строка с переносом и была обрезана
+	return (1);
 }
 
-static	int			read_fd(int fd, char *buffer, char **cache, char **line)
+static	int			read_fd(int fd, char **cache, char **line)
 {
 	int				ret;
 	char			*tmp_cache;
+	char			buffer[BUFF_SIZE];
 
-    // читаем пока не наступит EOF
-    // (read вернет значение меньшее чем мы просили)
 	while ((ret = read(fd, buffer, BUFF_SIZE)) > 0)
 	{
 		buffer[ret] = '\0';
@@ -45,9 +41,9 @@ static	int			read_fd(int fd, char *buffer, char **cache, char **line)
 			tmp_cache = NULL;
 		}
 		else
-        {
+		{
 			*cache = ft_strdup(buffer);
-        }
+		}
 		if (split_cache_str(cache, line))
 			break ;
 	}
@@ -57,33 +53,17 @@ static	int			read_fd(int fd, char *buffer, char **cache, char **line)
 int					get_next_line(int const fd, char **line)
 {
 	static char		*cache[MAX_FD];
-	char			*buffer;
 	int				ret;
-	int				i;
 
 	if (!line || (fd < 0 || fd >= MAX_FD))
 		return (-1);
-
-    // if (read(fd, cache[fd], 0) < 0) // проверка что файл еще существует
-    //    return (-1);
-
-    if(!(buffer = (char *)malloc(sizeof(char) * BUFF_SIZE + 1)))
-        return (-1);
-
 	if (cache[fd] != NULL)
 		if (split_cache_str(&cache[fd], line))
 			return (1);
 
-    // заполняем нулями буфер
-    i = 0;
-	while (i < BUFF_SIZE)
-		buffer[i++] = '\0';
+	ret = read_fd(fd, &cache[fd], line);
 
-    ret = read_fd(fd, buffer, &cache[fd], line);
-
-    free(buffer);
-
-    if (ret != 0 || cache[fd] == NULL || cache[fd][0] == '\0')
+	if (ret != 0 || cache[fd] == NULL || cache[fd][0] == '\0')
 	{
 		if (!ret && *line)
 			*line = NULL;
